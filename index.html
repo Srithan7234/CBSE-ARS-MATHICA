@@ -149,6 +149,25 @@
     }
     #title { font-size:2rem; letter-spacing:4px; }
   }
+  #my-brand {
+  position: fixed;
+  bottom: 18px;     /* adjust if needed */
+  right: 22px;      /* adjust if needed */
+  
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  
+  background: rgba(40, 0, 60, 0.45);  /* glassy purple */
+  border: 1px solid rgba(160, 80, 255, 0.25);
+  backdrop-filter: blur(6px);
+  
+  border-radius: 10px;
+  z-index: 100000;   /* ABOVE iframe */
+  pointer-events: none; /* so it never interferes */
+}
+
 </style>
 </head>
 <body>
@@ -168,6 +187,8 @@
 
   <!-- Fractal app iframe -->
   <iframe id="appFrame" src="https://arsmathica-mathvisualised.base44.app/" title="ArsMathica Fractal Visualiser"></iframe>
+  <div id="my-brand">ArsMathica</div>
+
 
 <script>
 /* Minimal JS to reliably run bullets, flash, title reveal and show iframe.
