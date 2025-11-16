@@ -45,9 +45,9 @@
     100% { transform: translateX(60vw) translateY(20px); opacity: 0; }
   }
 
-  .bullet:nth-child(1) { top: 40%; animation-delay: 0.0s; }
-  .bullet:nth-child(2) { top: 46%; animation-delay: 0.2s; }
-  .bullet:nth-child(3) { top: 52%; animation-delay: 0.4s; }
+  .bullet:nth-of-type(1) { top: 40%; animation-delay: 0s; }
+.bullet:nth-of-type(2) { top: 46%; animation-delay: 0.2s; }
+.bullet:nth-of-type(3) { top: 52%; animation-delay: 0.4s; }
 
   /* SPARK IMPACT FLASH */
   #flash {
@@ -104,17 +104,19 @@
   }
 
   /* Transparent badge mask */
-  #badge-mask {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 120px;
-    height: 45px;
-    pointer-events: none;
-    z-index: 10000;
-    -webkit-mask: radial-gradient(circle 40px at 60% 50%, transparent 50%, black 51%);
-    mask: radial-gradient(circle 40px at 60% 50%, transparent 50%, black 51%);
-  }
+ #badge-mask {
+  position: fixed;
+  bottom: 15px;
+  right: 25px;
+  width: 180px;
+  height: 60px;
+  pointer-events: none;
+  z-index: 10000;
+
+  -webkit-mask: radial-gradient(circle 55px at 70% 50%, transparent 52%, black 53%);
+  mask: radial-gradient(circle 55px at 70% 50%, transparent 52%, black 53%);
+}
+
 </style>
 </head>
 
