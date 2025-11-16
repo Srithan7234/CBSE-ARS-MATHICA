@@ -112,22 +112,69 @@
   bottom: 10px;
   right: 10px;
 
-  width: 230px;   /* bigger width */
-  height: 60px;   /* bigger height */
+  width: 260px;
+  height: 70px;
 
-  background: black;
-  border-radius: 12px;
+  /* FIRE BACKGROUND GRADIENT */
+  background: linear-gradient(135deg, #ff2200, #ff7a00, #ffae00);
+  background-size: 200% 200%;
+  animation:
+    fireBG 3s ease infinite,
+    fireWobble 2s infinite ease-in-out alternate;
+
+  /* ANIMATED FIRE BORDER */
+  border: 4px solid transparent;
+  border-radius: 14px;
+  background-clip: padding-box;
+  box-shadow: 0 0 25px rgba(255, 80, 0, 0.7);
 
   z-index: 999999999 !important;
-  pointer-events: none;
 
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 
-  font-size: 18px;
-  font-weight: 700;
-  color: white;
+  pointer-events: auto; /* THIS FIXES THE BASE44 REDIRECT */
+
+  /* FIRE TEXT */
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffddbb;
+  text-shadow:
+    0 0 10px #ff6600,
+    0 0 20px #ff3300,
+    0 0 35px #ff0000,
+    0 0 50px #ff5500;
+}
+
+/* BACKGROUND ANIMATION */
+@keyframes fireBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* HEAT WAVE WOBBLE */
+@keyframes fireWobble {
+  0%   { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.03) rotate(0.7deg); }
+}
+
+/* EXTRA GLOW PULSE */
+#my-brand::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  z-index: -1;
+  box-shadow: 0 0 40px rgba(255, 80, 0, 0.8);
+  animation: firePulse 1.6s infinite alternate ease-in-out;
+}
+
+@keyframes firePulse {
+  0% { box-shadow: 0 0 20px rgba(255, 70, 0, 0.6); }
+  100% { box-shadow: 0 0 40px rgba(255, 120, 0, 0.9); }
 }
 
 
@@ -146,8 +193,7 @@
 <iframe src="https://arsmathica-mathvisualised.base44.app/"></iframe>
 
 <!-- CUSTOM NAME TAG (covers badge) -->
-<div id="my-brand">ArsMathica</div>
-
+<div id="my-brand" onclick="event.stopPropagation(); return false;">ArsMathica</div>
 <script>
 /* Simple reliable JS intro */
 
