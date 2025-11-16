@@ -1,495 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ARS MATHICA </title>
-  <style>
-    /* Reset + base */
-    html,body { height:100%; margin:0; background: #000; overflow:hidden; font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-    /* video background covers full screen */
-    #intro-wrap { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:9999; background:black; }
-    video#bg {
-      position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:contrast(1.05) saturate(1.1) brightness(0.9);
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArsMathica – OG Visualised</title>
 
-    /* canvas for bullets/particles & title mask */
-    canvas#fx { position:absolute; inset:0; width:100%; height:100%; display:block; }
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: black;
+    overflow: hidden;
+    font-family: "Inter", sans-serif;
+  }
 
-    /* center container to hold the final iframe (hidden until intro done) */
-    iframe { width:100%; height:100%; border:0; opacity:0; transition:opacity .8s ease; display:block; }
+  /* INTRO WRAPPER */
+  #intro {
+    position: fixed;
+    inset: 0;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 9999;
+    animation: fadeOut 0.9s ease 3.2s forwards;
+  }
 
-    /* final title (for accessibility + fallback) hidden visually */
-    .sr-only { position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
+  /* BULLET LINE */
+  .bullet {
+    position: absolute;
+    width: 180px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ffdd88);
+    filter: blur(1px);
+    opacity: 0;
+    animation: shoot 0.6s ease forwards;
+  }
 
-    /* Transparent badge mask so underlying UI shows but badge area is 'cut out' */
-    #badge-mask {
-      position: fixed;
-      bottom: 10px; /* slight insetting to match Base44 badge */
-      right: 12px;
-      width: 150px;
-      height: 52px;
-      pointer-events: none;
-      z-index: 10010;
-      /* create a solid area that is transparent by mask, effectively 'erasing' what's beneath visually */
-      background: rgba(0,0,0,0.0);
-      -webkit-mask: radial-gradient(circle 60px at 50% 50%, transparent 52%, black 53%);
-      mask: radial-gradient(circle 60px at 50% 50%, transparent 52%, black 53%);
-    }
+  @keyframes shoot {
+    0% { transform: translateX(-40vw) translateY(-20px); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateX(60vw) translateY(20px); opacity: 0; }
+  }
 
-    /* small skip button */
-    #skipBtn {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      z-index: 10020;
-      background: rgba(0,0,0,0.45);
-      color: #ffd89b;
-      border: 1px solid rgba(255,215,128,0.12);
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      backdrop-filter: blur(4px);
-      font-weight:700;
-      letter-spacing:1px;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
+  .bullet:nth-child(1) { top: 40%; animation-delay: 0.0s; }
+  .bullet:nth-child(2) { top: 46%; animation-delay: 0.2s; }
+  .bullet:nth-child(3) { top: 52%; animation-delay: 0.4s; }
 
-    /* small cinematic touches */
-    .burn-glow {
-      mix-blend-mode: screen;
-      filter: drop-shadow(0 0 20px rgba(255,160,60,0.85));
-    }
+  /* SPARK IMPACT FLASH */
+  #flash {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,150,40,0.65), transparent 70%);
+    filter: blur(20px);
+    opacity: 0;
+    animation: flashIn 0.5s ease 0.8s forwards;
+  }
 
-    /* make sure iframe sits below overlay canvases but appears after intro */
-    #appFrame { position:fixed; inset:0; z-index:1; background:#000; }
-  </style>
+  @keyframes flashIn {
+    0% { opacity: 0; transform: scale(0.4); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* BURNING TITLE */
+  #title {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: 6px;
+    color: #ffddb0;
+    text-shadow:
+      0 0 10px #ffae42,
+      0 0 20px #ff7a00,
+      0 0 40px #ff3c00;
+    opacity: 0;
+    animation: burnIn 1.4s ease 1.3s forwards;
+  }
+
+  @keyframes burnIn {
+    0% { opacity: 0; transform: scale(0.85); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes fadeOut {
+    100% { opacity: 0; visibility: hidden; }
+  }
+
+  /* FRACTAL APP */
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    opacity: 0;
+    animation: showApp 1s ease 3.3s forwards;
+  }
+
+  @keyframes showApp {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Transparent badge mask */
+  #badge-mask {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 120px;
+    height: 45px;
+    pointer-events: none;
+    z-index: 10000;
+    -webkit-mask: radial-gradient(circle 40px at 60% 50%, transparent 50%, black 51%);
+    mask: radial-gradient(circle 40px at 60% 50%, transparent 50%, black 51%);
+  }
+</style>
 </head>
+
 <body>
 
-  <!-- Intro wrapper: video + fx canvas -->
-  <div id="intro-wrap" aria-hidden="true">
-    <video id="bg" autoplay muted playsinline preload="auto">
-      <!-- try webm first, fallback to mp4 -->
-      <source src="intro.webm" type="video/webm">
-      <source src="intro.mp4" type="video/mp4">
-    </video>
+<!-- SIMPLE HEAVY INTRO -->
+<div id="intro">
+  <div class="bullet"></div>
+  <div class="bullet"></div>
+  <div class="bullet"></div>
 
-    <!-- visual fx canvas -->
-    <canvas id="fx"></canvas>
+  <div id="flash"></div>
 
-    <!-- skip button -->
-    <button id="skipBtn">Skip Intro</button>
-  </div>
+  <div id="title">ARS MATHICA</div>
+</div>
 
-  <!-- The badge-mask (transparent hole) to hide Base44 badge but keep UI visible -->
-  <div id="badge-mask" aria-hidden="true"></div>
+<!-- CLEAN BADGE HIDING -->
+<div id="badge-mask"></div>
 
-  <!-- The actual app iframe (Base44). It remains hidden until the intro finishes -->
-  <iframe id="appFrame" src="https://arsmathica-mathvisualised.base44.app/" title="ArsMathica Fractal Visualiser"></iframe>
+<!-- MAIN APP -->
+<iframe src="https://arsmathica-mathvisualised.base44.app/"></iframe>
 
-  <!-- Accessible title -->
-  <h1 class="sr-only">ARS MATHICA — Firestorm is here</h1>
-
-<script>
-/*
-  Heavy cinematic intro script:
-  - Plays optional whoosh sound for bullets
-  - Animates bullet streaks and sparks
-  - Uses offscreen canvas to generate letter pixel map
-  - On "impact", particles fly to target letter pixels and create burning reveal
-  - After timeline ends (or user skips), intro div removed and iframe fades in
-*/
-
-/* CONFIG */
-const CONFIG = {
-  canvasFps: 60,
-  bulletsCount: 10,
-  bulletColor: '#ffdf88',
-  sparkColor: '#ffb65c',
-  burnColor: '#ff6a00',
-  titleText: 'ARS MATHICA',
-  subtitleText: 'Firestorm is here',
-  titleFont: 'bold 160px "Inter", sans-serif', // large for high-res letter mapping
-  particleSize: 1.8,
-  particlesPerPixel: 0.02, // density for forming letters
-  introDuration: 5200, // fallback timeline (ms) — video should match or be shorter
-  whooshSrc: 'whoosh.mp3'
-};
-
-/* DOM */
-const canvas = document.getElementById('fx');
-const ctx = canvas.getContext('2d', { alpha: true });
-const video = document.getElementById('bg');
-const introWrap = document.getElementById('intro-wrap');
-const skipBtn = document.getElementById('skipBtn');
-const appFrame = document.getElementById('appFrame');
-
-/* size canvas to devicePixelRatio for crispness */
-function resizeCanvas() {
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.floor(window.innerWidth * dpr);
-  canvas.height = Math.floor(window.innerHeight * dpr);
-  canvas.style.width = window.innerWidth + 'px';
-  canvas.style.height = window.innerHeight + 'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-/* optional whoosh audio */
-let whoosh;
-function tryLoadWhoosh() {
-  whoosh = new Audio(CONFIG.whooshSrc);
-  whoosh.volume = 0.55;
-  whoosh.preload = 'auto';
-  whoosh.onerror = ()=>{ whoosh = null; };
-}
-tryLoadWhoosh();
-
-/* Particle system basics */
-class Bullet {
-  constructor(x,y,targetX,targetY,spd,angle) {
-    this.x = x; this.y = y;
-    this.tx = targetX; this.ty = targetY;
-    this.spd = spd;
-    this.vx = Math.cos(angle)*spd;
-    this.vy = Math.sin(angle)*spd;
-    this.alive = true;
-  }
-  step(dt) {
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
-    // offscreen or reached target approximate
-    const dx = this.tx - this.x, dy = this.ty - this.y;
-    if (Math.hypot(dx,dy) < 8) { this.alive = false; return true; }
-    if (this.x < -50 || this.x > innerWidth+50 || this.y < -50 || this.y > innerHeight+50) { this.alive=false; }
-    return false;
-  }
-  draw(ctx) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    const len = 28;
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x - this.vx*len, this.y - this.vy*len);
-    ctx.lineWidth = 2.4;
-    ctx.strokeStyle = CONFIG.bulletColor;
-    ctx.stroke();
-    ctx.restore();
-  }
-}
-
-class Spark {
-  constructor(x,y,angle,speed,life,color) {
-    this.x=x; this.y=y; this.vx=Math.cos(angle)*speed; this.vy=Math.sin(angle)*speed;
-    this.life = life; this.maxLife = life; this.color=color;
-  }
-  step(dt) {
-    this.vy += 0.08*dt; // gravity-ish
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
-    this.life -= dt*0.9;
-  }
-  draw(ctx) {
-    const t = Math.max(this.life/this.maxLife,0);
-    ctx.globalAlpha = t;
-    ctx.beginPath();
-    ctx.fillStyle = this.color;
-    ctx.arc(this.x, this.y, Math.max(0.6, 1.6 * t), 0, Math.PI*2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-  }
-}
-
-/* Particles that will form the letters */
-class PixelParticle {
-  constructor(x,y,tx,ty,color) {
-    this.x = x; this.y = y;
-    this.tx = tx; this.ty = ty;
-    this.vx = (Math.random()-0.5)*3;
-    this.vy = (Math.random()-0.5)*3;
-    this.color = color;
-    this.reached = false;
-  }
-  step(dt) {
-    const dx = this.tx - this.x;
-    const dy = this.ty - this.y;
-    const dist = Math.hypot(dx,dy);
-    if (dist < 2.5) { this.reached = true; this.x = this.tx; this.y = this.ty; return; }
-    // springy motion toward target
-    this.vx += (dx*0.02) * dt;
-    this.vy += (dy*0.02 + 0.05) * dt;
-    this.vx *= 0.95; this.vy *= 0.96;
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
-  }
-  draw(ctx) {
-    ctx.beginPath();
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, CONFIG.particleSize, CONFIG.particleSize);
-  }
-}
-
-/* Manage collections */
-let bullets = [];
-let sparks = [];
-let pixels = [];
-let pixelMapReady = false;
-
-/* Create a pixel map from title text drawn on an offscreen canvas */
-function generatePixelTargets() {
-  const off = document.createElement('canvas');
-  const s = Math.min(window.innerWidth, 1300);
-  off.width = s;
-  off.height = 240;
-  const g = off.getContext('2d');
-  // black bg
-  g.fillStyle = 'black';
-  g.fillRect(0,0,off.width,off.height);
-  // title
-  g.font = CONFIG.titleFont;
-  g.textAlign = 'center';
-  g.fillStyle = 'white';
-  // center text horizontally
-  g.fillText(CONFIG.titleText, off.width/2, off.height*0.68);
-  // image data
-  const img = g.getImageData(0,0,off.width,off.height);
-  const step = Math.max(2, Math.floor(5 - (window.devicePixelRatio||1))); // adjust density on small screens
-  pixels = [];
-  for (let y=0; y<off.height; y+=step) {
-    for (let x=0; x<off.width; x+=step) {
-      const idx = (y*off.width + x)*4;
-      const a = img.data[idx+3];
-      if (a > 120) {
-        // map target to screen coordinates centered
-        const targetX = (x - off.width/2) + innerWidth/2;
-        const targetY = (y - off.height/2) + innerHeight*0.42;
-        pixels.push({tx: targetX, ty: targetY});
-      }
-    }
-  }
-  // reduce density according to particlesPerPixel
-  const keep = Math.floor(pixels.length * CONFIG.particlesPerPixel);
-  const chosen = [];
-  for (let i=0; i<keep; i++) {
-    chosen.push(pixels[Math.floor(Math.random()*pixels.length)]);
-  }
-  pixelTargets = chosen;
-  pixelMapReady = true;
-}
-
-/* spawn initial particle cloud offscreen corners that will fly to letter targets */
-function spawnPixelParticles() {
-  pixels = [];
-  if (!pixelMapReady) generatePixelTargets();
-  const startZones = [
-    {x: -80, y: innerHeight*0.2, w: 160, h: innerHeight*0.6},
-    {x: innerWidth+80, y: innerHeight*0.2, w: 160, h: innerHeight*0.6},
-    {x: innerWidth*0.5, y: -80, w: innerWidth*0.6, h: 160}
-  ];
-  const colors = ['#ffb65c','#ff6a00','#ffdf88'];
-  for (let i=0; i<pixelTargets.length; i++) {
-    const t = pixelTargets[i];
-    // pick random start zone
-    const z = startZones[Math.floor(Math.random()*startZones.length)];
-    const sx = z.x + Math.random()*z.w;
-    const sy = z.y + Math.random()*z.h;
-    const col = colors[Math.floor(Math.random()*colors.length)];
-    const p = new PixelParticle(sx, sy, t.tx, t.ty, col);
-    pixels.push(p);
-  }
-}
-
-/* spawn bullets coming from random edges towards random letter target positions */
-function spawnBullets(n=CONFIG.bulletsCount) {
-  const targets = pixelTargets || [];
-  for (let i=0;i<n;i++){
-    // choose a random target from pixelTargets to aim at
-    const t = targets[Math.floor(Math.random()*targets.length)];
-    // spawn from left or right or top edge
-    const side = Math.random();
-    let sx, sy;
-    if (side < 0.45) { sx = -40; sy = innerHeight*0.15 + Math.random()*innerHeight*0.7; }
-    else if (side < 0.9) { sx = innerWidth + 40; sy = innerHeight*0.15 + Math.random()*innerHeight*0.7; }
-    else { sx = innerWidth*0.2 + Math.random()*innerWidth*0.6; sy = -40; }
-    const angle = Math.atan2(t.ty - sy, t.tx - sx);
-    const speed = 14 + Math.random()*6;
-    bullets.push(new Bullet(sx, sy, t.tx, t.ty, speed, angle));
-  }
-}
-
-/* when bullet hits, spawn sparks and trigger nearby pixelParticles' attraction */
-function onImpact(x,y) {
-  // spark cloud
-  const sparksCount = 32 + Math.floor(Math.random()*22);
-  for (let i=0;i<sparksCount;i++){
-    const ang = Math.random()*Math.PI*2;
-    const sp = new Spark(x + (Math.random()-0.5)*6, y + (Math.random()-0.5)*6, ang, 2+Math.random()*3, 20+Math.random()*18, CONFIG.sparkColor);
-    sparks.push(sp);
-  }
-  // nudge pixels near this area (apply small random impulse)
-  const burnRadius = 90;
-  pixels.forEach(p=>{
-    const dx = p.tx - x, dy = p.ty - y;
-    const d = Math.hypot(dx,dy);
-    if (d < burnRadius) {
-      // small random displacement to simulate burning motion
-      p.vx += (Math.random()-0.5)*5;
-      p.vy += (Math.random()-1.2)*5;
-    }
-  });
-}
-
-/* main animation loop */
-let last = performance.now();
-let running = true;
-
-function step(now) {
-  const dt = Math.min(1/30, (now - last) / (1000/60)); // normalized
-  last = now;
-  // clear with slight fade for trails
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.fillRect(0,0,innerWidth,innerHeight);
-
-  // bullets
-  for (let i = bullets.length-1; i>=0; i--) {
-    const b = bullets[i];
-    const hit = b.step(dt);
-    b.draw(ctx);
-    if (hit) {
-      // sound
-      try { if (whoosh) { whoosh.currentTime = 0; whoosh.play(); } } catch(e){}
-      // sparks
-      onImpact(b.x, b.y);
-      // spawn a few tiny burning particles that persist (visual)
-      for (let k=0;k<8;k++){
-        sparks.push(new Spark(b.x, b.y, Math.random()*Math.PI*2, 1+Math.random()*2.8, 28+Math.random()*40, CONFIG.burnColor));
-      }
-      bullets.splice(i,1);
-    } else if (!b.alive) {
-      bullets.splice(i,1);
-    }
-  }
-
-  // sparks
-  for (let i = sparks.length-1; i>=0; i--) {
-    const s = sparks[i];
-    s.step(dt);
-    s.draw(ctx);
-    if (s.life <= 0) sparks.splice(i,1);
-  }
-
-  // pixel particles (forming letters)
-  for (let i = 0; i<pixels.length; i++){
-    const p = pixels[i];
-    p.step(dt);
-    // flicker color between burnColor and sparkColor
-    const col = (p.reached && Math.random() < 0.02) ? CONFIG.burnColor : '#ffb65c';
-    ctx.fillStyle = col;
-    p.draw(ctx);
-  }
-
-  // subtle overlay burn glow: draw composite highlight for reached pixels
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  for (let i=0;i<pixels.length;i+=6){
-    const p = pixels[i];
-    if (p.reached) {
-      ctx.fillStyle = 'rgba(255,120,30,0.08)';
-      ctx.fillRect(p.x-6, p.y-6, 20, 20);
-    }
-  }
-  ctx.restore();
-
-  if (running) requestAnimationFrame(step);
-}
-
-/* timeline orchestration */
-function runIntro() {
-  generatePixelTargets();
-  spawnPixelParticles();
-  // schedule bullet waves timed to create hits that form the title
-  const waveTimings = [300, 700, 1100, 1700, 2200, 2800];
-  waveTimings.forEach((t, idx) => {
-    setTimeout(()=> {
-      spawnBullets(6 + Math.floor(Math.random()*6));
-      // small whoosh at waves too
-      try { if (whoosh) { whoosh.currentTime = 0; whoosh.play(); } } catch(e){}
-      // also spawn a few extra sparks center
-      for (let i=0;i<12;i++) {
-        sparks.push(new Spark(innerWidth*0.5 + (Math.random()-0.5)*150, innerHeight*0.4 + (Math.random()-0.5)*80, Math.random()*Math.PI*2, 1+Math.random()*2, 30+Math.random()*30, CONFIG.sparkColor));
-      }
-    }, t);
-  });
-
-  // final burst where many particles reach targets
-  setTimeout(()=> {
-    // accelerate attraction: reduce spring delay by setting target closer
-    pixels.forEach(p => {
-      // slightly random jitter toward target (so they snap)
-      p.vx *= 0.3; p.vy *= 0.3;
-    });
-    // spawn a large number of sparks and embers for cinematic
-    for (let i=0;i<160;i++) {
-      sparks.push(new Spark(innerWidth*0.5 + (Math.random()-0.5)*300, innerHeight*0.4 + (Math.random()-0.5)*200, Math.random()*Math.PI*2, 1+Math.random()*3, 30+Math.random()*70, CONFIG.burnColor));
-    }
-  }, 3200);
-
-  // fade out intro container and reveal iframe after introDuration (or earlier on skip)
-  setTimeout(()=> finishIntro(), CONFIG.introDuration);
-}
-
-/* finish: remove intro wrapper and fade iframe in */
-function finishIntro() {
-  if (!introWrap) return;
-  running = false;
-  // gently remove intro UI
-  introWrap.style.transition = 'opacity .6s ease';
-  introWrap.style.opacity = 0;
-  setTimeout(()=> {
-    introWrap.parentNode && introWrap.parentNode.removeChild(introWrap);
-    // show iframe
-    appFrame.style.opacity = 1;
-    // slight delay so particles don't persist
-    setTimeout(()=> { requestAnimationFrame(()=>{}); }, 400);
-  }, 620);
-}
-
-/* skip handler */
-skipBtn.addEventListener('click', ()=> {
-  finishIntro();
-});
-
-/* ensure autoplay policies: try play the video, if blocked, show skip button so user can proceed */
-function tryStart() {
-  // start canvas animation
-  last = performance.now();
-  running = true;
-  requestAnimationFrame(step);
-  // start timeline but ensure video is played
-  video.play().then(()=> {
-    runIntro();
-  }).catch(()=> {
-    // autoplay blocked or no sound allowed — still run visuals but keep skip visible
-    video.muted = true;
-    video.play().catch(()=>{});
-    runIntro();
-  });
-}
-
-/* when DOM ready, start */
-window.addEventListener('load', ()=> {
-  // slight delay so video decodes
-  setTimeout(()=> {
-    tryStart();
-  }, 280);
-});
-
-/* safe cleanup if user navigates away */
-window.addEventListener('beforeunload', ()=> { running=false; });
-</script>
 </body>
 </html>
+
