@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ArsMathica – OG Visualised</title>
+<style>
+  :root{
+    --intro-duration: 3200ms; /* total intro length before iframe reveals */
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    background:#000;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    overflow:hidden;
+  }
+
+  /* ---------- INTRO CONTAINER ---------- */
+  #intro {
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:#000;
+    z-index:9999;
+    pointer-events:none;
+  }
+
+  /* bullets created by JS */
+  .bullet {
+    position:absolute;
+    left:-40vw;          /* start off left */
+    width:220px;
+    height:3px;
+    background: linear-gradient(90deg, transparent, #ffdd88);
+    filter: blur(0.6px);
+    opacity:0;
+    transform:translateY(0) translateX(0);
+    will-change: transform, opacity;
+  }
+  .bullet.shoot {
+    animation: bulletMove 700ms cubic-bezier(.18,.9,.2,1) forwards;
+    opacity:1;
+  }
+  @keyframes bulletMove {
+    0% { transform: translateX(0) translateY(var(--dy,0)); opacity: 0; }
+    10%{ opacity: 1; }
+    100%{ transform: translateX(100vw) translateY(calc(var(--dy,0) + 40px)); opacity: 0; }
+  }
+
+  /* flash / spark impact */
+  #flash {
+    position:absolute;
+    width:300px;
+    height:300px;
+    border-radius:50%;
+    background: radial-gradient(circle, rgba(255,160,60,0.85), transparent 55%);
+    filter: blur(26px) saturate(1.2);
+    opacity:0;
+    transform: scale(0.48);
+    transition: opacity 260ms ease, transform 420ms cubic-bezier(.2,.9,.3,1);
+    pointer-events:none;
+  }
+  #flash.active {
+    opacity:1;
+    transform: scale(1);
+  }
+
+  /* title */
+  #title {
+    position:relative;
+    z-index:1000;
+    font-size:3.1rem;
+    letter-spacing:6px;
+    font-weight:800;
+    color:#ffddb0;
+    text-shadow:
+      0 0 8px #ffb24a,
+      0 0 18px #ff8a2b,
+      0 0 36px #ff3c00;
+    opacity:0;
+    transform: scale(0.92);
+    transition: opacity 420ms ease 300ms, transform 420ms cubic-bezier(.2,.9,.3,1) 300ms;
+    pointer-events:none;
+  }
+  #title.revealed {
+    opacity:1;
+    transform: scale(1);
+  }
+
+  /* subtle ember glow overlay while intro runs */
+  #ember {
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:9988;
+    mix-blend-mode: screen;
+    opacity:0.14;
+    background: radial-gradient(circle at 50% 40%, rgba(255,120,30,0.08), transparent 18%),
+                radial-gradient(circle at 30% 70%, rgba(255,180,80,0.03), transparent 12%);
+  }
+
+  /* fade-out intro then reveal iframe */
+  #intro.fadeout {
+    transition: opacity 420ms ease;
+    opacity:0;
+    visibility:hidden;
+  }
+
+  iframe#appFrame {
+    position:fixed;
+    inset:0;
+    border:0;
+    width:100%;
+    height:100%;
+    opacity:0;
+    transition: opacity 620ms ease;
+    z-index:1;
+    background:#000;
+  }
+  iframe#appFrame.visible { opacity:1; z-index:2; }
+
+  /* ---------- TRANSPARENT BADGE MASK (pixel-tuned) ---------- */
+  /* Tuned for your screenshot: bottom ~15px, right ~25px, size ~180x60 */
+  #badge-mask {
+    position: fixed;
+    bottom: 15px;
+    right: 25px;
+    width: 180px;
+    height: 60px;
+    pointer-events: none;
+    z-index: 10005;
+    background: rgba(0,0,0,0.0);
+
+    /* circular hole-ish mask that makes the region visually transparent */
+    -webkit-mask: radial-gradient(circle 55px at 70% 50%, transparent 52%, black 53%);
+    mask: radial-gradient(circle 55px at 70% 50%, transparent 52%, black 53%);
+  }
+
+  /* responsive tweak: on tiny screens nudge mask a bit */
+  @media (max-width:600px){
+    #badge-mask { bottom: 10px; right: 10px; width:140px; height:48px;
+      -webkit-mask: radial-gradient(circle 45px at 70% 50%, transparent 52%, black 53%);
+      mask: radial-gradient(circle 45px at 70% 50%, transparent 52%, black 53%);
+    }
+    #title { font-size:2rem; letter-spacing:4px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Ember overlay (decorative) -->
+  <div id="ember" aria-hidden="true"></div>
+
+  <!-- Intro (bullets + flash + title) -->
+  <div id="intro" aria-hidden="true">
+    <!-- JS will inject bullets here -->
+    <div id="flash"></div>
+    <div id="title">ARS MATHICA</div>
+  </div>
+
+  <!-- Transparent mask to hide Base44 edit badge (keeps UI visible) -->
+  <div id="badge-mask" aria-hidden="true"></div>
+
+  <!-- Fractal app iframe -->
+  <iframe id="appFrame" src="https://arsmathica-mathvisualised.base44.app/" title="ArsMathica Fractal Visualiser"></iframe>
+
+<script>
+/* Minimal JS to reliably run bullets, flash, title reveal and show iframe.
+   No external files. Timings chosen to match CSS transitions. */
+
+(function(){
+  const intro = document.getElementById('intro');
+  const flash = document.getElementById('flash');
+  const title = document.getElementById('title');
+  const app = document.getElementById('appFrame');
+
+  /* bullet creation data: top positions and delays */
+  const bulletsSpec = [
+    {topPercent: 40, delay: 80, dy: -18},
+    {topPercent: 46, delay: 260, dy: -6},
+    {topPercent: 52, delay: 420, dy: 6},
+    {topPercent: 58, delay: 620, dy: 14} /* extra one for stronger effect */
+  ];
+
+  function createBullet(spec){
+    const b = document.createElement('div');
+    b.className = 'bullet';
+    b.style.top = spec.topPercent + 'vh';
+    b.style.setProperty('--dy', spec.dy + 'px');
+    // trigger shoot after delay
+    setTimeout(()=> {
+      b.classList.add('shoot');
+      // slight randomized mid-trajectory sparkle (temporary added blur)
+      setTimeout(()=> {
+        b.style.filter = 'blur(1.6px) drop-shadow(0 0 6px rgba(255,180,80,0.28))';
+      }, 160);
+    }, spec.delay);
+    intro.appendChild(b);
+    // remove bullet after animation to keep DOM clean
+    setTimeout(()=> { try{ b.remove(); }catch(e){} }, 1400);
+    return b;
+  }
+
+  /* place the flash near center-right of the canvas area so it matches badge area region visually */
+  function placeFlash(){
+    // center-ish location slightly left of center (so title forms center)
+    const vx = window.innerWidth * 0.5;
+    const vy = window.innerHeight * 0.38;
+    flash.style.left = (vx - 150) + 'px';
+    flash.style.top  = (vy - 150) + 'px';
+  }
+
+  /* start sequence */
+  function startIntro(){
+    placeFlash();
+    // create bullets
+    bulletsSpec.forEach(s => createBullet(s));
+
+    // small mid-timeline triggers
+    setTimeout(()=> {
+      flash.classList.add('active');
+    }, 780);
+
+    // reveal title with burning glow slightly after flash
+    setTimeout(()=> {
+      title.classList.add('revealed');
+    }, 1300);
+
+    // extend flash fade a bit then remove
+    setTimeout(()=> {
+      flash.classList.remove('active');
+    }, 2100);
+
+    // final: fade out intro and reveal iframe
+    setTimeout(()=> {
+      intro.classList.add('fadeout');
+      // show app
+      app.classList.add('visible');
+      // remove intro DOM after transition
+      setTimeout(()=> { try{ intro.remove(); } catch(e){} }, 700);
+    }, parseInt(getComputedStyle(document.documentElement).getPropertyValue('--intro-duration')) || 3200);
+  }
+
+  /* on load run intro; fallback to skip if user interacts */
+  window.addEventListener('load', ()=> {
+    // give a tiny moment before starting for perceived cinematic timing
+    setTimeout(startIntro, 140);
+    // re-place flash on resize for pixel-perfect
+    window.addEventListener('resize', placeFlash);
+  });
+
+})();
+</script>
+</body>
+</html>
