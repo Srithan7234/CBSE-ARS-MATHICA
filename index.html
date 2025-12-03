@@ -15,7 +15,8 @@
     font-family: "Inter", sans-serif;
   }
 
-  /* INTRO WRAPPER */
+
+  /* GLITCH INTRO */
   #intro {
     position: fixed;
     inset: 0;
@@ -23,72 +24,66 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
     z-index: 9999;
-    animation: fadeOut 0.9s ease 3.2s forwards;
+    animation: fadeOut 0.5s ease 2.5s forwards;
   }
 
-  /* BULLET LINES */
-  .bullet {
-    position: absolute;
-    left: -40vw;
-    width: 220px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #ffdd88);
-    filter: blur(0.6px);
-    opacity: 0;
-  }
-
-  /* bullet animation triggered via JS */
-  .shoot {
-    animation: bulletMove 700ms cubic-bezier(.18,.9,.2,1) forwards;
-  }
-
-  @keyframes bulletMove {
-    0%   { opacity:0; transform:translateX(0) translateY(var(--dy)); }
-    10%  { opacity:1; }
-    100% { opacity:0; transform:translateX(100vw) translateY(calc(var(--dy) + 40px)); }
-  }
-
-  /* FLASH */
-  #flash {
-    position: absolute;
-    width: 260px;
-    height: 260px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,150,40,0.65), transparent 70%);
-    filter: blur(20px);
-    opacity: 0;
-    transform: scale(0.4);
-    transition: opacity 300ms ease, transform 500ms ease;
-  }
-
-  #flash.active {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  /* TITLE */
   #title {
-    font-size: 3rem;
-    font-weight: 800;
-    letter-spacing: 6px;
-    color: #ffddb0;
-    text-shadow:
-      0 0 10px #ffae42,
-      0 0 20px #ff7a00,
-      0 0 40px #ff3c00;
-    opacity: 0;
-    transform: scale(0.85);
-    transition: opacity 500ms ease 300ms, transform 600ms ease 300ms;
+    font-size: 4rem;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #fff;
+    position: relative;
+    animation: glitch 1s steps(2, end) infinite;
   }
 
-  #title.revealed {
-    opacity: 1;
-    transform: scale(1);
+  #title::before,
+  #title::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
   }
 
-  @keyframes fadeOut { 100% { opacity: 0; visibility: hidden; } }
+  #title::before {
+    left: 2px;
+    text-shadow: -2px 0 #ff00c1;
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch 2s steps(2, end) infinite reverse;
+  }
+
+  #title::after {
+    left: -2px;
+    text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1;
+    clip: rect(85px, 450px, 90px, 0);
+    animation: glitch 1.5s steps(2, end) infinite;
+  }
+
+  @keyframes glitch {
+    0% {
+      clip: rect(42px, 9999px, 44px, 0);
+      transform: skew(0.6deg);
+    }
+    10% {
+      clip: rect(15px, 9999px, 99px, 0);
+      transform: skew(0.2deg);
+    }
+    /* ... (add more steps for a more complex glitch) ... */
+    100% {
+      clip: rect(75px, 9999px, 60px, 0);
+      transform: skew(0.4deg);
+    }
+  }
+
+  @keyframes fadeOut {
+    100% {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
 
   /* APP IFRAME */
   iframe {
@@ -98,7 +93,7 @@
     opacity: 0;
     position: relative;
     z-index: 1 !important; /* LOWER than overlay */
-    animation: showApp 1s ease 3.3s forwards;
+    animation: showApp 1s ease 2.5s forwards;
   }
 
   @keyframes showApp {
@@ -186,48 +181,23 @@ pointer-events: auto;
 
 <!-- INTRO -->
 <div id="intro">
-  <div id="flash"></div>
-  <div id="title">ARS MATHICA</div>
+  <div id="title" data-text="ARS MATHICA">ARS MATHICA</div>
 </div>
 
 <!-- MAIN IFRAME -->
 <iframe src="https://fractal-explorer-copy-9f89735d.base44.app/"></iframe>
 
 <script>
-/* Simple reliable JS intro */
+  const intro = document.getElementById("intro");
+  const title = document.getElementById("title");
 
-const intro = document.getElementById("intro");
-const flash = document.getElementById("flash");
-const title = document.getElementById("title");
-
-/* Bullet data */
-const bullets = [
-  { top: "40vh", delay: 50,  dy: -20 },
-  { top: "46vh", delay: 260, dy: -8  },
-  { top: "52vh", delay: 420, dy: 10  },
-  { top: "58vh", delay: 580, dy: 20  },
-];
-
-function fireBullet(b){
-  const el = document.createElement("div");
-  el.className = "bullet";
-  el.style.top = b.top;
-  el.style.setProperty("--dy", b.dy + "px");
-  intro.appendChild(el);
-
-  setTimeout(()=> el.classList.add("shoot"), b.delay);
-  setTimeout(()=> el.remove(), 1500);
-}
-
-window.addEventListener("load", () => {
-  setTimeout(()=>{
-    bullets.forEach(b=>fireBullet(b));
-
-    setTimeout(()=>flash.classList.add("active"), 700);
-    setTimeout(()=>title.classList.add("revealed"), 1200);
-    setTimeout(()=>flash.classList.remove("active"), 2000);
-  }, 200);
-});
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      title.style.animation = 'none';
+      // Optional: Add a class to trigger a final "clean" state
+      title.classList.add('stable');
+    }, 2000); // Stop glitching after 2 seconds
+  });
 </script>
 
 </body>
